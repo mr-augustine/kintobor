@@ -9,6 +9,8 @@
 #ifndef _KINTOBOR_H_
 #define _KINTOBOR_H
 
+#define ROBOT_NAME "kintobor"
+
 #ifdef __cplusplus
 extern "C" {
   // No higher-order functions just yet.
