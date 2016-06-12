@@ -9,7 +9,7 @@
 #ifndef _KINTOBOR_H_
 #define _KINTOBOR_H
 
-#define ROBOT_NAME "kintobor"
+#define ROBOT_NAME ("kintobor")
 
 #ifdef __cplusplus
 extern "C" {

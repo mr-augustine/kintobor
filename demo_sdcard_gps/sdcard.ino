@@ -6,6 +6,7 @@
  * The sdcard Arduino file defines the SD card wrapper functions.
  */
 #include <SD.h>
+#include "kintobor.h"
 
 #define SDCARD_CHIP_SELECT 53
 
