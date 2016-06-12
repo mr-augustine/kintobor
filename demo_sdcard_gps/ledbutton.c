@@ -26,7 +26,7 @@ uint8_t button_init(void) {
   BUTTON_LED_PORT |= (1 << BUTTON_LED_PIN);
 
   // Set the button's pin as an input
-  BUTTON_DDR |= (0 << BUTTON_PIN);
+  BUTTON_DDR &= ~(1 << BUTTON_PIN);
 
   // Set the button's LED pin as an output
   BUTTON_LED_DDR |= (1 << BUTTON_LED_PIN);
@@ -81,7 +81,7 @@ void led_turn_off(void) {
     return;
   }
 
-  BUTTON_LED_PINVEC |= (0 << BUTTON_LED_PIN);
+  BUTTON_LED_PORT &= ~(1 << BUTTON_LED_PIN);
 
   return;
 }
@@ -92,7 +92,7 @@ void led_turn_on(void) {
     return;
   }
 
-  BUTTON_LED_PINVEC |= (1 << BUTTON_LED_PIN);
+  BUTTON_LED_PORT |= (1 << BUTTON_LED_PIN);
 
   return;
 }

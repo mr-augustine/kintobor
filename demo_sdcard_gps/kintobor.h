@@ -18,7 +18,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-  // No higher-order functions just yet.
   void update_all_inputs(void);
 }
 #endif // #ifdef __cplusplus

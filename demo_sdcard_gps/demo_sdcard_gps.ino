@@ -3,9 +3,10 @@
  * created: 20160611
  * author(s): mr-augustine
  *
- * This file orchestrates the sdcard_gps demo. GPS data are continuously
- * parsed and stored to the statevars variable. And the statevars are
- * continuously written to a file on the SD card.
+ * This file orchestrates the sdcard_gps demo. When the start/stop button is
+ * pressed, GPS data are continuously parsed and stored to the statevars
+ * variable. And the statevars are continuously written to a file on the
+ * SD card. The program ends when the start/stop button is pressed again.
  */
 #include <stdint.h>
 
@@ -85,7 +86,8 @@ void loop() {
 
   iterations++;
 
-  if (iterations >= 255) {
+  // If the button switched to the OFF position, then stop the mission
+  if (!button_is_pressed()) {
     uwrite_print_buff("Finished collecting data!\r\n");
     sdcard_finish();
 
@@ -153,7 +155,8 @@ void enable_mainloop_timer(void) {
   return;
 }
 
-// TODO Shift this function into the higher-order functions group
+// TODO Shift this function into the higher-order functions group, but
+// separate the sdcard_init() since it won't be recognized by the AVR code
 uint8_t init_all_subsystems(void) {
   uwrite_init();
 
