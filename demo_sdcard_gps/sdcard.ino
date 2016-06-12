@@ -28,12 +28,12 @@ uint8_t sdcard_init(void * data_ptr, uint32_t size) {
   }
 
   if (!SD.begin(SDCARD_CHIP_SELECT)) {
-    Serial.println("SD Card didn't initialize");
+    uwrite_print_buff("SD Card didn't initialize\r\n");
     return 0;
   }
 
   if (!init_datafile()) {
-    Serial.println("Could not start a new datafile");
+    uwrite_print_buff("Could not start a new datafile\r\n");
     return 0;
   }
 
@@ -69,7 +69,8 @@ uint8_t init_datafile(void) {
     return 0;
   }
 
-  Serial.println("Data file was opened for write!");
+  uwrite_print_buff(filepath);
+  uwrite_print_buff(" was opened for write!\r\n");
 
   return 1;
 }
@@ -85,7 +86,7 @@ void write_data(void) {
 void sdcard_finish(void) {
   if (data_file) {
     data_file.close();
-    Serial.println("File is closed");
+    uwrite_print_buff("File is closed\r\n");
   }
 
   return;

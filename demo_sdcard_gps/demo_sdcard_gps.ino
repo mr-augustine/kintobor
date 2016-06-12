@@ -5,12 +5,14 @@
  *
  * This file orchestrates the sdcard_gps demo.
  *
- * For now, the program will write a statevars entry to a hard-coded file.
+ * For now, the program will write a loop iteration value to a numbered
+ * data file.
  */
 #include <stdint.h>
 
 #include "kintobor.h"
 #include "statevars.h"
+#include "uwrite.h"
 
 /* The MAINLOOP_PERIOD_TICKS value should be some fraction of:
  * 16,000,000 / prescaler
@@ -19,9 +21,9 @@
 #define MAINLOOP_PERIOD_TICKS   6249    // loop period is 25 ms
 
 statevars_t statevars;
+uint32_t iterations;
 
 volatile uint8_t mainloop_timer_overflow = 0; // indicates mainloop overflow
-uint32_t iterations;
 /* Interrupt Service Routine that triggers when the main loop is running longer
  * than it should.
  */
@@ -30,12 +32,11 @@ ISR(TIMER1_OVF_vect) {
 }
 
 void setup() {
-  Serial.begin(9600);
 
-  if (sdcard_init(&statevars, sizeof(statevars))) {
-    Serial.println("All systems ready!");
+  if (!init_all_subsystems()) {
+    uwrite_print_buff("All systems ready!\r\n");
   } else {
-    Serial.println("There was a subsystem failure");
+    uwrite_print_buff("There was a subsystem failure\r\n");
   }
 
   clear_statevars();
@@ -46,9 +47,6 @@ void setup() {
 
   configure_mainloop_timer();
   enable_mainloop_timer();
-
-  //write_data();
-  //sdcard_finish();
 }
 
 void loop() {
@@ -62,8 +60,8 @@ void loop() {
 
   iterations++;
 
-  if (iterations > 256) {
-    Serial.println("Finished collecting data!");
+  if (iterations >= 255) {
+    uwrite_print_buff("Finished collecting data!\r\n");
     sdcard_finish();
 
     exit(0);
@@ -100,4 +98,15 @@ void enable_mainloop_timer(void) {
   TIMSK1 = 0b00000001;
 
   return;
+}
+
+uint8_t init_all_subsystems(void) {
+  uwrite_init();
+
+  if (!sdcard_init(&statevars, sizeof(statevars))) {
+    uwrite_print_buff("SD card couldn't be initialized");
+    return 0;
+  }
+
+  return 1;
 }

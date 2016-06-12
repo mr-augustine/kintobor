@@ -57,4 +57,4 @@ typedef struct {
 
 extern statevars_t statevars;
 
-#endif // _STATEVARS_H_
+#endif // #ifndef _STATEVARS_H_
