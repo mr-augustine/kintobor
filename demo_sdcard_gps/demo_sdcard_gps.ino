@@ -3,10 +3,9 @@
  * created: 20160611
  * author(s): mr-augustine
  *
- * This file orchestrates the sdcard_gps demo.
- *
- * For now, the program will write a loop iteration value to a numbered
- * data file.
+ * This file orchestrates the sdcard_gps demo. GPS data are continuously
+ * parsed and stored to the statevars variable. And the statevars are
+ * continuously written to a file on the SD card.
  */
 #include <stdint.h>
 
