@@ -9,11 +9,17 @@
 #ifndef _KINTOBOR_H_
 #define _KINTOBOR_H
 
+#include "gps.h"
+#include "statevars.h"
+#include "uwrite.h"
+#include "ledbutton.h"
+
 #define ROBOT_NAME ("kintobor")
 
 #ifdef __cplusplus
 extern "C" {
   // No higher-order functions just yet.
+  void update_all_inputs(void);
 }
 #endif // #ifdef __cplusplus
 

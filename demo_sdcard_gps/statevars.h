@@ -16,6 +16,8 @@
 #define GPS_DATE_WIDTH        8
 #define PADDING_LENGTH        (512-411)
 
+#define STATUS_SYS_TIMER_OVERFLOW (1 << 0);
+#define STATUS_MISSION_ACTIVE     (1 << 1);
 #define STATUS_GPS_NO_BUFF_AVAIL  (1 << 2);
 #define STATUS_GPS_BUFF_OVERFLOW  (1 << 3);
 #define STATUS_GPS_UNEXPECT_START (1 << 4);
@@ -26,6 +28,7 @@
 #define STATUS_GPS_NO_FIX_AVAIL   (1 << 9);
 #define STATUS_GPS_UNEXPECT_VAL   (1 << 10);
 #define STATUS_GPS_DATA_NOT_VALID (1 << 11);
+#define STATUS_MAIN_LOOP_LATE     (1 << 12);
 
 typedef struct {
     uint32_t prefix;
