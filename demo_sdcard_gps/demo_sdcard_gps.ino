@@ -3,14 +3,14 @@
  * created: 20160611
  * author(s): mr-augustine
  *
- * This file orchestrates the sdcard_gps demo.
- *
- * For now, the program will write a loop iteration value to a numbered
- * data file.
+ * This file orchestrates the sdcard_gps demo. GPS data are continuously
+ * parsed and stored to the statevars variable. And the statevars are
+ * continuously written to a file on the SD card.
  */
 #include <stdint.h>
 
 #include "kintobor.h"
+#include "gps.h"
 #include "statevars.h"
 #include "uwrite.h"
 
@@ -33,10 +33,11 @@ ISR(TIMER1_OVF_vect) {
 
 void setup() {
 
-  if (!init_all_subsystems()) {
+  if (init_all_subsystems()) {
     uwrite_print_buff("All systems ready!\r\n");
   } else {
     uwrite_print_buff("There was a subsystem failure\r\n");
+    exit(0);
   }
 
   clear_statevars();
@@ -56,6 +57,7 @@ void loop() {
   statevars.main_loop_counter = iterations;
   mainloop_timer_overflow = 0;
 
+  gps_update();
   write_data();
 
   iterations++;
@@ -66,6 +68,22 @@ void loop() {
 
     exit(0);
   }
+
+  /* Ensure that the main loop period is as long as we want it to be.
+   * This means (1) triggering the main loop to restart when we notice it is
+   * running too long, and (2) performing busy waiting if the instructions
+   * above finish before the desired loop duration.
+   */
+  while (1) {
+    if (mainloop_timer_overflow) {
+      break;
+    }
+
+    if (TCNT1 >= MAINLOOP_PERIOD_TICKS) {
+      break;
+    }
+  }
+
 }
 
 void clear_statevars(void) {
@@ -104,8 +122,17 @@ uint8_t init_all_subsystems(void) {
   uwrite_init();
 
   if (!sdcard_init(&statevars, sizeof(statevars))) {
-    uwrite_print_buff("SD card couldn't be initialized");
+    uwrite_print_buff("SD card couldn't be initialized\r\n");
     return 0;
+  } else {
+    uwrite_print_buff("SD card is ready!\r\n");
+  }
+
+  if (!gps_init()) {
+    uwrite_print_buff("GPS sensor couldn't be initialized\r\n");
+    return 0;
+  } else {
+    uwrite_print_buff("GPS sensor is ready!\r\n");
   }
 
   return 1;
