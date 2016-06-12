@@ -1,8 +1,13 @@
 /*
- * file:    ledbutton.c
- * author:  mr-augustine
- * date:    20160612
+ * file: ledbutton.c
+ * created: 20160612
+ * author(s): mr-augustine
  *
+ * Defines the functions used for a SPST pushbutton that has an LED indicator.
+ * The actual button I used for this was from Radio Shack (# 275-0009).
+ *
+ * Regardless of the button's initial physical state (pressed or unpressed),
+ * this library will initialize the button as being unpressed.
  */
 #include <avr/io.h>
 #include "ledbutton.h"

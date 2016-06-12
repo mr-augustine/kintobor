@@ -1,7 +1,7 @@
 /*
- * file:    ledbutton.h
- * author:  mr-augustine
- * date:    20160502
+ * file: ledbutton.h
+ * created: 20160612
+ * author(s): mr-augustine
  *
  * Declares the functions used for a SPST pushbutton that has an LED indicator.
  * The actual button I used for this was from Radio Shack (# 275-0009).
