@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 #include "kintobor.h"
+#include "gps.h"
 #include "statevars.h"
 #include "uwrite.h"
 
@@ -33,10 +34,11 @@ ISR(TIMER1_OVF_vect) {
 
 void setup() {
 
-  if (!init_all_subsystems()) {
+  if (init_all_subsystems()) {
     uwrite_print_buff("All systems ready!\r\n");
   } else {
     uwrite_print_buff("There was a subsystem failure\r\n");
+    exit(0);
   }
 
   clear_statevars();
@@ -56,6 +58,7 @@ void loop() {
   statevars.main_loop_counter = iterations;
   mainloop_timer_overflow = 0;
 
+  gps_update();
   write_data();
 
   iterations++;
@@ -104,8 +107,17 @@ uint8_t init_all_subsystems(void) {
   uwrite_init();
 
   if (!sdcard_init(&statevars, sizeof(statevars))) {
-    uwrite_print_buff("SD card couldn't be initialized");
+    uwrite_print_buff("SD card couldn't be initialized\r\n");
     return 0;
+  } else {
+    uwrite_print_buff("SD card is ready!\r\n");
+  }
+
+  if (!gps_init()) {
+    uwrite_print_buff("GPS sensor couldn't be initialized\r\n");
+    return 0;
+  } else {
+    uwrite_print_buff("GPS sensor is ready!\r\n");
   }
 
   return 1;
