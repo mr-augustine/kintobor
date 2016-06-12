@@ -126,7 +126,6 @@ uint8_t gps_init(void) {
   // f_osc / (UBRRn + 1) == 115200
   // See Table 20.7 in the Atmel specs
   UBRR1H = 0;
-  //UBRR1L = 8;
   UBRR1L = 103; //baud = 9600
 
   // Re-enable interrupts after USART configuration is complete
@@ -154,7 +153,7 @@ void gps_update(void) {
     gps_unexpected_start = 0;
   }
 
-  uint8_t i = 0;
+  uint8_t i;
   for (i = 0; i < NUM_GPS_SENTENCE_BUFFS; i++) {
     if (gps_buffers[i].ready == 1) {
       char * sentence_ptr = gps_buffers[i].sentence;

@@ -68,6 +68,22 @@ void loop() {
 
     exit(0);
   }
+
+  /* Ensure that the main loop period is as long as we want it to be.
+   * This means (1) triggering the main loop to restart when we notice it is
+   * running too long, and (2) performing busy waiting if the instructions
+   * above finish before the desired loop duration.
+   */
+  while (1) {
+    if (mainloop_timer_overflow) {
+      break;
+    }
+
+    if (TCNT1 >= MAINLOOP_PERIOD_TICKS) {
+      break;
+    }
+  }
+
 }
 
 void clear_statevars(void) {
