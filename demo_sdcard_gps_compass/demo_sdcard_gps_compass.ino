@@ -168,11 +168,11 @@ uint8_t init_all_subsystems(void) {
     led_turn_off();
   }
 
-  if (!sdcard_init(&statevars, sizeof(statevars))) {
-    uwrite_print_buff("SD card couldn't be initialized\r\n");
+  if (!cmps10_init()) {
+    uwrite_print_buff("Compass couldn't be initialized\r\n");
     return 0;
   } else {
-    uwrite_print_buff("SD card is ready!\r\n");
+    uwrite_print_buff("Compass is ready!\r\n");
   }
 
   if (!gps_init()) {
@@ -180,6 +180,13 @@ uint8_t init_all_subsystems(void) {
     return 0;
   } else {
     uwrite_print_buff("GPS sensor is ready!\r\n");
+  }
+  
+  if (!sdcard_init(&statevars, sizeof(statevars))) {
+    uwrite_print_buff("SD card couldn't be initialized\r\n");
+    return 0;
+  } else {
+    uwrite_print_buff("SD card is ready!\r\n");
   }
 
   return 1;
