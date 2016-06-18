@@ -41,25 +41,28 @@ ISR(THROTTLE_ISR_VECT) {
   THROTTLE_PORT &= ~(1 << THROTTLE_PIN);
 }
 
-static void tnp_bypass(void) {
+static void tnp_bypass(uint16_t iterations) {
   uint16_t pulse_on_duration_us = 1500;
   uint16_t pulse_off_duration_us = 23500;
-  // TODO The number of iterations could probably be halved.
-  uint8_t pulse_iterations = 250;
+
+  uint8_t pulse_iterations = iterations;
   uint8_t i;
 
-  // Ensure the drive pin is given a low signal
+  // Ensure the drive and steering pins are initially low
   THROTTLE_PORT &= ~(1 << THROTTLE_PIN);
+  STEERING_PORT &= ~(1 << STEERING_PIN);
 
   for (i = 0; i < pulse_iterations; i++) {
-    // Start the neutral pwm pulse
+    // Start the neutral pwm pulses
     THROTTLE_PORT |= (1 << THROTTLE_PIN);
+    STEERING_PORT |= (1 << STEERING_PIN);
 
     // Hold the pulse
     _delay_us(pulse_on_duration_us);
 
     // end the pulse
     THROTTLE_PORT &= ~(1 << THROTTLE_PIN);
+    STEERING_PORT &= ~(1 << STEERING_PIN);
     _delay_us(pulse_off_duration_us);
   }
 
@@ -76,7 +79,7 @@ uint8_t mobility_init(void) {
   STEERING_DDR = (1 << STEERING_PIN);
 
   // Begin Throttle Neutral Protection bypass
-  tnp_bypass();
+  tnp_bypass(TNP_MIN_ITERATIONS);
 
   mobility_stop();
   steer_to_direction(TURN_NEUTRAL);
@@ -220,31 +223,14 @@ void mobility_drive_rev(Drive_Speed speed) {
   return;
 }
 
-// Commands the drive motor and steering servo to be in neutral by sending
-// a neutral pulse to both.
+/* Commands the drive motor and steering servo to be in neutral by sending
+ * a neutral pulse to both. The pulse occupies 1/40th of a second from start
+ * to finish.
+ * Note: This function should not be called within the main loop because it
+ * prevents other operations from occuring (except interrupts).
+ */
 void mobility_blocking_stop(void) {
-  uint16_t pulse_on_duration_us = 1500;
-  uint16_t pulse_off_duration_us = 23500;
-  uint8_t pulse_iterations = 1;
-  uint8_t i;
-
-  // Ensure the pins are given a low signal
-  THROTTLE_PORT &= ~(1 << THROTTLE_PIN);
-  STEERING_PORT &= ~(1 << STEERING_PIN);
-
-  for (i = 0; i < pulse_iterations; i++) {
-    // Start the neutral pwm pulse
-    THROTTLE_PORT |= (1 << THROTTLE_PIN);
-    STEERING_PORT |= (1 << STEERING_PIN);
-
-    // Hold the pulse
-    _delay_us(pulse_on_duration_us);
-
-    // end the pulses
-    THROTTLE_PORT &= ~(1 << THROTTLE_PIN);
-    STEERING_PORT &= ~(1 << STEERING_PIN);
-    _delay_us(pulse_off_duration_us);
-  }
+  tnp_bypass(1);
 
   return;
 }

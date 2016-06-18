@@ -23,6 +23,8 @@
 #define REV_RATE_US           10
 #define PRE_REV_STOP_US       1400
 #define PRE_REV_HOLD_ITERS    40
+#define TNP_MIN_ITERATIONS    100   // minimum number of iterations to execute
+                                    // throttle neutral protection bypass
 
 #define SPEED_FWD_CREEP       1600
 #define SPEED_FWD_CRUISE      1800
