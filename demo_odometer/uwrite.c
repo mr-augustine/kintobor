@@ -103,7 +103,7 @@ void uwrite_println_short(void * a_short) {
   if (uwrite_initialized) {
     char * char_ptr = buffer;
 
-    snprintf(buffer, BUFF_SIZE, "0x%02X\r\n", *((uint16_t *) a_short));
+    snprintf(buffer, BUFF_SIZE, "0x%04X\r\n", *((uint16_t *) a_short));
 
     while (*char_ptr != 0) {
       while TX_REG_NOT_READY() {;}
@@ -126,7 +126,7 @@ void uwrite_println_long(void * a_long) {
   if (uwrite_initialized) {
     char * char_ptr = buffer;
 
-    snprintf(buffer, BUFF_SIZE, "0x%02lX\r\n", *((uint32_t *) a_long));
+    snprintf(buffer, BUFF_SIZE, "0x%08lX\r\n", *((uint32_t *) a_long));
 
     while (*char_ptr != 0) {
       while TX_REG_NOT_READY() {;}

@@ -17,7 +17,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-
+  // No higher-order functions for this demo
 }
 #endif // #ifdef __cplusplus
 

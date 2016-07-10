@@ -14,11 +14,10 @@
 #include <avr/io.h>
 
 #include "odometer.h"
-#include "statevars.h"
 #include "uwrite.h"
 
-static uint32_t fwd_count;
-static uint32_t rev_count;
+volatile static uint32_t fwd_count;
+volatile static uint32_t rev_count;
 static Wheel_Direction wheel_turn_direction;
 
 ISR(ODOMETER_ISR_VECT) {
@@ -26,6 +25,7 @@ ISR(ODOMETER_ISR_VECT) {
   // Increment the approriate count variable (fwd_count or rev_count)
   if (wheel_turn_direction == Direction_Forward) {
     fwd_count++;
+    uwrite_println_long(&fwd_count);
   } else {
     rev_count++;
   }
@@ -38,7 +38,7 @@ uint8_t odometer_init(void) {
   // Set the odometer pin as an input
   ODOMETER_DDR &= ~(1 << ODOMETER_PIN);
 
-  // Set the Pin Change Interrupt to Falling Edge
+  // Set the External Interrupt to Falling Edge
   // The odometer pin is normally high when the magnet is not present, and then
   // becomes low when the magnet passes in front of it.
   // See Table 15-1 in the Atmel specs
@@ -48,7 +48,7 @@ uint8_t odometer_init(void) {
   // Enable interrupts on odometer pin
   EIMSK |= (1 << ODOMETER_INTERRUPT_MASK_PIN);
 
-  odometer_rest();
+  odometer_reset();
   wheel_turn_direction = Direction_Forward;
 
   return 1;

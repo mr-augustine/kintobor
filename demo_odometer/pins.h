@@ -22,7 +22,8 @@
 #define ODOMETER_PORT         PORTD
 #define ODOMETER_DDR          DDRD
 #define ODOMETER_PINVEC       PIND
-#define ODOMETER_PIN          PD0   // Mega Digital Pin 19
+#define ODOMETER_PIN          PD2   // Mega Digital Pin 19
+// TODO Switch the GPS pins to something else; say 16 and 17
 
 ////////////////////////////////////////////////////////////////////////////////
 // USART WRITE
