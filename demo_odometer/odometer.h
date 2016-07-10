@@ -13,10 +13,12 @@
 
 #include <avr/io.h>
 
+#include "pins.h"
+
 #define ODOMETER_ISR_VECT             INT2_vect
 #define ODOMETER_INTERRUPT_MASK_PIN   INT2
 
-typdef enum {
+typedef enum {
   Direction_Forward,
   Direction_Reverse
 } Wheel_Direction;
