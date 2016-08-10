@@ -21,6 +21,8 @@
  */
 #define MAINLOOP_PERIOD_TICKS   6249    // loop period is 25 ms
 
+#define MAX_LOOP_ITERATIONS     120     // Equivalent to 3 seconds (40 loops/s)
+
 statevars_t statevars;
 uint32_t iterations;
 
@@ -88,20 +90,19 @@ void loop() {
 
   update_all_inputs();
 
-  steer_to_direction(TURN_NEUTRAL)
-  mobility_drive_fwd(Speed_Creep)
+  steer_to_direction(TURN_NEUTRAL);
+  mobility_drive_fwd(Speed_Creep);
 
   iterations++;
 
-  // If the button is switched to the OFF position, then stop the mission
-  if (!button_is_pressed()) {
+  // If the button is switched to the OFF position or if the iteration counter
+  // for this demo is exceeded, then stop the mission
+  if (!button_is_pressed() || iterations > MAX_LOOP_ITERATIONS) {
     uwrite_print_buff("Finished collecting data!\r\n");
     sdcard_finish();
 
     uwrite_print_buff("Stopping!\r\n");
     mobility_hardstop();
-
-    exit(0);
   }
 
   /* Ensure that the main loop period is as long as we want it to be.
@@ -178,7 +179,7 @@ uint8_t init_all_subsystems(void) {
     led_turn_off();
   }
 
-  if (!cmps10_init()) {
+  if (!cmps11_init()) {
     uwrite_print_buff("Compass couldn't be initialized\r\n");
     return 0;
   } else {

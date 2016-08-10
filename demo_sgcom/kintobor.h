@@ -9,7 +9,7 @@
 #ifndef _KINTOBOR_H_
 #define _KINTOBOR_H
 
-#include "cmps10.h"
+#include "cmps11.h"
 #include "gps.h"
 #include "ledbutton.h"
 #include "mobility.h"

@@ -27,11 +27,10 @@ typedef enum {
 extern "C" {
   uint8_t odometer_init(void);
   void odometer_reset(void);
-  void odometer_reset_fwd_count(void);
-  void odometer_reset_rev_count(void);
   void odometer_set_direction(Wheel_Direction wd);
   uint32_t odometer_get_fwd_count(void);
   uint32_t odometer_get_rev_count(void);
+  uint32_t odometer_get_tick_time(void);
   void odometer_update(void);
 }
 #endif // #ifdef __cplusplus

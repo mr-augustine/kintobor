@@ -19,6 +19,7 @@
 
 static volatile uint32_t fwd_count;
 static volatile uint32_t rev_count;
+static volatile uint32_t tick_time;
 static Wheel_Direction wheel_turn_direction;
 
 static void initialize_odometer_statevars(void);
@@ -36,6 +37,8 @@ ISR(ODOMETER_ISR_VECT) {
   } else {
     rev_count++;
   }
+
+  tick_time = micros();
 }
 
 static void initialize_odometer_statevars(void) {
@@ -70,20 +73,9 @@ uint8_t odometer_init(void) {
 }
 
 void odometer_reset(void) {
-    odometer_reset_fwd_count();
-    odometer_reset_rev_count();
-
-    return;
-}
-
-void odometer_reset_fwd_count(void) {
   fwd_count = 0;
-
-  return;
-}
-
-void odometer_reset_rev_count(void) {
   rev_count = 0;
+  tick_time = 0;
 
   return;
 }
@@ -102,6 +94,10 @@ uint32_t odometer_get_rev_count(void) {
   return rev_count;
 }
 
+uint32_t odometer_get_tick_time(void) {
+  return tick_time;
+}
+
 void odometer_update(void) {
   // TODO consider copying the timestamp that was (will be) set by the ISR
   // The ISR will probably write to a volatile variable; just copy that value
@@ -114,6 +110,8 @@ void odometer_update(void) {
     statevars.odometer_ticks = rev_count;
     statevars.odometer_ticks_are_fwd = 0;
   }
+
+  statevars.odometer_timestamp = tick_time;
 
   return;
 }
