@@ -9,8 +9,10 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/io.h>
+
 #include "mobility.h"
 #include "pins.h"
+#include "statevars.h"
 
 typedef enum {
   Gear_Forward,
@@ -130,6 +132,8 @@ void mobility_drive_fwd(Drive_Speed speed) {
     current_gear = Gear_Forward;
 
     THROTTLE_COMPARE_REG = mobility_throttle_us >> 2;
+
+    statevars.mobility_motor_pwm = THROTTLE_COMPARE_REG;
   }
 
   // NOTE: We're not handling the case where the robot is driving in reverse.
@@ -217,6 +221,8 @@ void mobility_drive_rev(Drive_Speed speed) {
 
   THROTTLE_COMPARE_REG = mobility_throttle_us >> 2;
 
+  statevars.mobility_motor_pwm = THROTTLE_COMPARE_REG;
+
   return;
 }
 
@@ -238,6 +244,8 @@ void mobility_hardstop(void) {
   mobility_throttle_us = SPEED_NEUTRAL;
 
   THROTTLE_COMPARE_REG = SPEED_NEUTRAL >> 2;
+
+  statevars.mobility_motor_pwm = THROTTLE_COMPARE_REG;
 
   return;
 }
@@ -283,6 +291,8 @@ void mobility_stop(void) {
 
   THROTTLE_COMPARE_REG = mobility_throttle_us >> 2;
 
+  statevars.mobility_motor_pwm = THROTTLE_COMPARE_REG;
+
   return;
 }
 
@@ -301,5 +311,6 @@ void steer_to_direction(uint16_t turn_degree) {
 
   STEERING_COMPARE_REG = mobility_steer_us >> 2;
 
+  statevars.mobility_steering_pwm = STEERING_COMPARE_REG;
   return;
 }
