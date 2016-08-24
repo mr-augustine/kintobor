@@ -29,7 +29,8 @@ ISR(ODOMETER_ISR_VECT) {
   // Taking a timestamp reading closer to the source should be more accurate.
   // Though I'm not sure by how much. ISRs really should be lean.
   // Update: according to data collected in a previous test, you can expect
-  // to see anywhere from zero up to two ticks in a single iteration.
+  // to see anywhere from zero up to four ticks in a single iteration.
+
   // Increment the approriate count variable (fwd_count or rev_count)
   if (wheel_turn_direction == Direction_Forward) {
     fwd_count++;
@@ -38,7 +39,13 @@ ISR(ODOMETER_ISR_VECT) {
     rev_count++;
   }
 
-  tick_time = micros();
+  // The micros() function doesn't appear to produce meaningful results. Many
+  // times, the micros value is repeated between iterations, and those values
+  // are unexpectedly low. This time we'll try using the main loop timer (TCNT1)
+  // to get timing information. Each tick represents 4 microseconds. And we can
+  // expect up to 25,000 microseconds in an iteration.
+  //tick_time = micros();
+  tick_time = TCNT1;
 }
 
 static void initialize_odometer_statevars(void) {
