@@ -18,11 +18,6 @@
 
 #define ROBOT_NAME ("kintobor")
 
-typedef struct {
-  float latitude;
-  float longitude;
-} GPS_Coordinate;
-
 #ifdef __cplusplus
 extern "C" {
   void update_all_inputs(void);

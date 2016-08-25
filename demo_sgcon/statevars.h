@@ -16,19 +16,19 @@
 #define GPS_DATE_WIDTH        8
 // #define PADDING_LENGTH        (512-419)
 
-#define STATUS_SYS_TIMER_OVERFLOW (1 << 0);
-#define STATUS_MISSION_ACTIVE     (1 << 1);
-#define STATUS_GPS_NO_BUFF_AVAIL  (1 << 2);
-#define STATUS_GPS_BUFF_OVERFLOW  (1 << 3);
-#define STATUS_GPS_UNEXPECT_START (1 << 4);
-#define STATUS_GPS_GPGGA_RCVD     (1 << 5);
-#define STATUS_GPS_GPVTG_RCVD     (1 << 6);
-#define STATUS_GPS_GPRMC_RCVD     (1 << 7);
-#define STATUS_GPS_GPGSA_RCVD     (1 << 8);
-#define STATUS_GPS_NO_FIX_AVAIL   (1 << 9);
-#define STATUS_GPS_UNEXPECT_VAL   (1 << 10);
-#define STATUS_GPS_DATA_NOT_VALID (1 << 11);
-#define STATUS_MAIN_LOOP_LATE     (1 << 12);
+#define STATUS_SYS_TIMER_OVERFLOW (1 << 0)
+#define STATUS_MISSION_ACTIVE     (1 << 1)
+#define STATUS_GPS_NO_BUFF_AVAIL  (1 << 2)
+#define STATUS_GPS_BUFF_OVERFLOW  (1 << 3)
+#define STATUS_GPS_UNEXPECT_START (1 << 4)
+#define STATUS_GPS_GPGGA_RCVD     (1 << 5)
+#define STATUS_GPS_GPVTG_RCVD     (1 << 6)
+#define STATUS_GPS_GPRMC_RCVD     (1 << 7)
+#define STATUS_GPS_GPGSA_RCVD     (1 << 8)
+#define STATUS_GPS_NO_FIX_AVAIL   (1 << 9)
+#define STATUS_GPS_UNEXPECT_VAL   (1 << 10)
+#define STATUS_GPS_DATA_NOT_VALID (1 << 11)
+#define STATUS_MAIN_LOOP_LATE     (1 << 12)
 
 typedef struct {
     uint32_t  prefix;
@@ -62,12 +62,13 @@ typedef struct {
     uint16_t  odometer_timestamp;
     uint8_t   odometer_ticks_are_fwd;
     float     nav_heading_deg;
-    float     calc_latitude;
-    float     calc_longitude;
-    float     waypoint_latitude;
-    float     waypoint_longitude;
-    float     relative_bearing_deg;
-    float     distance_to_waypoint_m;
+    float     nav_latitude;
+    float     nav_longitude;
+    float     nav_waypt_latitude;
+    float     nav_waypt_longitude;
+    float     nav_rel_bearing_deg;
+    float     nav_distance_to_waypt_m;
+    float     nav_speed;
     uint32_t suffix;
 } statevars_t;
 
