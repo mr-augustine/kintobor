@@ -14,6 +14,7 @@
 #define EARTH_RADIUS_M 6371393.0
 // Stolen from NOAA: https://www.ngdc.noaa.gov/geomag/WMM/data/WMM2015/WMM2015_D_MERC.pdf
 #define MAGNETIC_DECLINATION 4.0  // For central Texas
+#define METERS_PER_KNOT 0.514444
 #define MICROS_PER_TICK 4.0
 #define TICKS_PER_METER 7.6
 
@@ -25,6 +26,7 @@ static float nav_heading_deg;
 static float rel_bearing_deg;
 static float distance_to_waypoint_m;
 static float last_gps_heading_deg;
+static float last_gps_speed;
 static uint32_t prev_tick_count;
 static uint8_t num_ticks;
 
@@ -176,29 +178,22 @@ static void get_next_waypoint(void) {
 // TODO NEED TO GET ALL RELEVANT GPS VALUES UPDATED!
 // TODO calculate the number of ticks since the last iteration
 static void update_all_nav(void) {
-  // Get the latest lat/long if available
-  if (got_first_coord == 0) {
-    float svars_lat = statevars.latitude;
-    float svars_long = statevars.longitude;
+  get_next_waypoint();
 
-    // For this demo, set the very first GPS coordinate as the waypoint
-    if (svars_lat != 0.0 && svars_long != 0.0) {
-      current_pos.latitude = svars_lat;
-      current_pos.longitude = svars_long;
+  // Check if a new GPS coordinate was received and update the position
+  if (statevars.status & (1 << STATUS_GPS_GPGGA_RCVD) == 1) {
+    current_lat = statevars.gps_latitude;
+    current_long = statevars.gps_longitude;
+  }
 
-      waypoint_pos.latitude = svars_lat;
-      waypoint_pos.longitude = svars_long;
-
-      got_first_coord == 1;
-    }
+  if (statevars.status & (1 << STATUS_GPS_GPRMC_RCVD) == 1) {
+    last_gps_heading_deg = statevars.gps_ground_course_deg;
+    last_gps_speed = statevars.gps_ground_speed_kt * METERS_PER_KNOT;
   }
 
   nav_heading_deg = calc_nav_heading();
-
-  if (got_first_coord == 1) {
-    // if a new GPS update occurred use that
-    // otherwise use the most recent calculated position
-  } else {}
+  distance_to_waypoint_m = calc_dist_to_waypoint(current_lat, current_long, waypoint_lat, waypoint_long);
+  rel_bearing_deg = calc_relative_bearing(current_lat, current_long, waypoint_lat, waypoint_long, nav_heading_deg);
 
   statevars.nav_heading_deg = nav_heading_deg;
   statevars.calc_latitude = current_pos.latitude;
