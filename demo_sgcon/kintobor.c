@@ -14,53 +14,62 @@
 #define EARTH_RADIUS_M 6371393.0
 // Stolen from NOAA: https://www.ngdc.noaa.gov/geomag/WMM/data/WMM2015/WMM2015_D_MERC.pdf
 #define MAGNETIC_DECLINATION 4.0  // For central Texas
+#define MICROS_PER_TICK 4.0
+#define TICKS_PER_METER 7.6
 
-static GPS_Coordinate current_pos;
-static GPS_Coordinate waypoint_pos;
+static float current_lat;
+static float current_long;
+static float waypoint_lat;
+static float waypoint_long;
 static float nav_heading_deg;
 static float rel_bearing_deg;
-static float distance_to_waypoint_m
+static float distance_to_waypoint_m;
+static float last_gps_heading_deg;
+static uint32_t prev_tick_count;
+static uint8_t num_ticks;
 
-static float calc_dist_to_waypoint(GPS_Coordinate* curr_position, GPS_Coordinate* way_position);
+static float calc_dist_to_waypoint(float start_lat, float start_long, float end_lat, float end_long);
 static float calc_mid_angle(float heading_1, float heading_2);
 static float calc_nav_heading(void);
-static GPS_Coordinate calc_position(GPS_Coordinate* prev_position, float distance, float heading);
+static void calc_position(float* new_lat, float* new_long, float ref_lat, float ref_long, float distance, float heading);
+static float calc_relative_bearing(float start_lat, float start_long, float dest_lat, float dest_long, float heading);
 static float calc_speed(void);
-static GPS_Coordinate get_next_waypoint(void);
-static float degrees_to_radians(float degrees);
-static float radians_to_degrees(float radians);
+static void get_next_waypoint(void);
 
-
-uint8_t got_first_coord = 0;
+static uint8_t got_first_coord = 0;
 
 // Returns the distance (in meters) to the current waypoint
-static float calc_dist_to_waypoint(GPS_Coordinate* curr_position, GPS_Coordinate* way_position) {
-  float lat1_rad = DEG_TO_RAD(curr_position.latitude);
-  float long1_rad = DEG_TO_RAD(curr_position.longitude);
-  float lat2_rad = DEG_TO_RAD(way_position.latitude);
-  float long2_rad = DEG_TO_RAD(way_position.longitude);
+static float calc_dist_to_waypoint(float lat_1, float long_1, float lat_2, float long_2) {
+  float lat_1_rad = DEG_TO_RAD(lat_1);
+  float long_1_rad = DEG_TO_RAD(long_1);
+  float lat_2_rad = DEG_TO_RAD(lat_2);
+  float long_2_rad = DEG_TO_RAD(long_2);
 
-  float dlat = lat2_rad - lat1_rad;
-  float dlong = long2_rad - long1_rad;
+  float diff_lat = lat_2_rad - lat_1_rad;
+  float diff_long = long_2_rad - long_1_rad;
 
-  float a = (sin(dlat / 2) ^ 2) + cos(lat1_rad) * cos(lat2_rad) * (sin(dlong / 2) ^ 2);
-  float c = 2 * asin( sqrt(a) );
+  float a = (sin(diff_lat / 2) ^ 2) +
+    cos(lat_1_rad) *
+    cos(lat_2_rad) *
+    (sin(diff_long / 2) ^ 2);
 
-  float meters = EARTH_RADIUS_M * c;
+  float c = 2 * asin(sqrt(a));
 
-  return meters;
+  float distance_m = EARTH_RADIUS_M * c;
+
+  return distance_m;
 }
 
 // Returns the angle that is halfway between the specified headings
 static float calc_mid_angle(float heading_1, float heading_2) {
-  float h1_rad = DEG_TO_RAD(heading_1);
-  float h2_rad = DEG_TO_RAD(heading_2);
+  float hdg_1_rad = DEG_TO_RAD(heading_1);
+  float hdg_2_rad = DEG_TO_RAD(heading_2);
 
   // avr-gcc compiles with gnu++1 and gnu11 standard; the trig functions accept
   // float params
   float resultant[2] = {0.0, 0.0};
-  float resultant[0] = cos(h1_rad) + cos(h2_rad);
-  float resultant[1] = sin(h1_rad) + sin(h2_rad);
+  float resultant[0] = cos(hdg_1_rad) + cos(hdg_2_rad);
+  float resultant[1] = sin(hdg_1_rad) + sin(hdg_2_rad);
 
   float mid_angle_rad = atan2(resultant[1], resultant[0]);
   float mid_angle_deg = RAD_TO_DEG(mid_angle_rad);
@@ -73,26 +82,31 @@ static float calc_mid_angle(float heading_1, float heading_2) {
 }
 
 static float calc_nav_heading(void) {
+  float norm_mag_hdg = statevars.heading_deg + MAGNETIC_DECLINATION;
 
+  // Here we're calculating the navigation heading as the mid-angle between
+  // the compass heading and the GPS heading because experimental data seemed
+  // to produce good results when we did this.
+  float nav_heading = calc_mid_angle(norm_mag_hdg, last_gps_heading_deg);
+
+  // return norm_mag_hdg;
+  return nav_heading;
 }
 
 // Calculates a new position based on the current heading and distance
 // traveled from the previous position
-static GPS_Coordinate calc_position(GPS_Coordinate* prev_position, float distance, float heading) {
-  float lat_rad = DEG_TO_RAD(prev_position.latitude);
-  float long_rad = DEG_TO_RAD(prev_position.longitude);
+static void calc_position(float* new_lat, float* new_long, float ref_lat, float ref_long, float distance, float heading) {
+  float lat_rad = DEG_TO_RAD(ref_lat);
+  float long_rad = DEG_TO_RAD(ref_long);
   float heading_rad = DEG_TO_RAD(heading);
 
-  float est_lat = 0.0;
-  float est_long = 0.0;
-
-  est_lat = asin( sin(lat_rad) *
+  float est_lat = asin( sin(lat_rad) *
     cos(distance / EARTH_RADIUS_M) +
     cos(lat_rad) *
     sin(distance / EARTH_RADIUS_M) *
     cos(heading_rad) );
 
-  est_long = long_rad +
+  float est_long = long_rad +
     atan2( sin(heading_rad) *
     sin(distance / EARTH_RADIUS_M) *
     cos(lat_rad),
@@ -100,37 +114,68 @@ static GPS_Coordinate calc_position(GPS_Coordinate* prev_position, float distanc
     sin(lat_rad) *
     sin(est_lat) );
 
-  GPS_Coordinate new_position;
-
-  new_position.latitude = RAD_TO_DEG(est_lat);
-  new_position.longitude = RAD_TO_DEG(est_long);
-
-  return new_position;
-}
-
-// Calculates the relative bearing (i.e., the angle between the current
-// heading and the waypoint bearing)
-static float calc_relative_bearing(GPS_Coordinate* curr_position, GPS_Coordinate* way_position, float heading);
-
-// Calculates the robot's current speed; result in meters per second
-static float calc_speed(void);
-
-// Gets the next waypoint
-static GPS_Coordinate get_next_waypoint(void);
-
-void update_all_inputs(void) {
-  button_update();
-  cmps10_update_all();
-  gps_update();
-
-  // TODO This function may need to be wrapped in another function which also
-  // handles timestamp updates (for distance and speed calculations)
-  odometer_update();
+  *new_lat = RAD_TO_DEG(est_lat);
+  *new_long = RAD_TO_DEG(est_long);
 
   return;
 }
 
-void update_all_nav(void) {
+// Calculates the relative bearing (i.e., the angle between the current
+// heading and the waypoint bearing); a negative value means the destination
+// is towards the left, and vice versa
+static float calc_relative_bearing(float start_lat, float start_long, float dest_lat, float dest_long, float heading) {
+  float start_lat_rad = DEG_TO_RAD(start_lat);
+  float start_long_rad = DEG_TO_RAD(start_long);
+  float dest_lat_rad = DEG_TO_RAD(dest_lat);
+  float dest_long_rad = DEG_TO_RAD(dest_long);
+
+  float y = sin(dest_long_rad - start_long_rad) *
+    cos(dest_lat_rad);
+  float x = cos(start_lat_rad) *
+    sin(dest_lat_rad) -
+    sin(start_lat_rad) *
+    cos(dest_lat_rad) *
+    cos(dest_long_rad - start_long_rad);
+
+  float bearing_rad = atan2(y, x);
+  float bearing_deg = RAD_TO_DEG(bearing_rad);
+
+  return (bearing_deg - heading);
+}
+
+// Calculates the robot's current speed; result in meters per second
+static float calc_speed(void) {
+  float elapsed_time_s = statevars.odometer_timestamp * MICROS_PER_TICK / 1000000.0;
+
+  float speed_meters_per_sec = 0.0;
+
+  if (elapsed_time_s > 0.0) {
+    speed_meters_per_sec = num_ticks / TICKS_PER_METER / elapsed_time_s;
+  }
+
+  return speed_meters_per_sec;
+}
+
+// Gets the next waypoint
+// For this demo, we're using the first GPS coordinate we received
+static void get_next_waypoint(void) {
+  if (got_first_coord == 1) {
+    return;
+  }
+
+  if (statevars.status & (1 << STATUS_GPS_GPGGA_RCVD) == 1) {
+    waypoint_lat = statevars.latitude;
+    waypoint_long = statevars.longitude;
+
+    got_first_coord = 1;
+  }
+
+  return;
+}
+
+// TODO NEED TO GET ALL RELEVANT GPS VALUES UPDATED!
+// TODO calculate the number of ticks since the last iteration
+static void update_all_nav(void) {
   // Get the latest lat/long if available
   if (got_first_coord == 0) {
     float svars_lat = statevars.latitude;
@@ -162,6 +207,17 @@ void update_all_nav(void) {
   statevars.waypoint_longitude = waypoint_pos.longitude;
   statevars.relative_bearing_deg = relative_bearing_deg;
   statevars.distance_to_waypoint_m = distance_to_waypoint_m;
+
+  return;
+}
+
+void update_all_inputs(void) {
+  button_update();
+  cmps10_update_all();
+  gps_update();
+  odometer_update();
+
+  update_all_nav();
 
   return;
 }

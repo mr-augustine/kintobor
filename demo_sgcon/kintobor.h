@@ -27,8 +27,6 @@ typedef struct {
 extern "C" {
   void update_all_inputs(void);
 
-  void update_all_nav(void);
-
   // Odometer-related higher-order functions
   // Calculates the distance traveled since the last iteration; result in meters
   // float calc_iter_dist(void);
