@@ -188,7 +188,7 @@ static void get_next_waypoint(void) {
     return;
   }
 
-  if (statevars.status & (1 << STATUS_GPS_GPGGA_RCVD)) {
+  if (statevars.status & STATUS_GPS_GPGGA_RCVD) {
     waypoint_lat = statevars.gps_latitude;
     waypoint_long = statevars.gps_longitude;
 
@@ -204,13 +204,13 @@ static void update_all_nav(void) {
   get_next_waypoint();
 
   // Check if a new GPS coordinate was received and update the position
-  if (statevars.status & (1 << STATUS_GPS_GPGGA_RCVD)) {
+  if (statevars.status & STATUS_GPS_GPGGA_RCVD) {
     current_lat = statevars.gps_latitude;
     current_long = statevars.gps_longitude;
   }
 
   // Check if a new GPS heading and speed were received and update
-  if (statevars.status & (1 << STATUS_GPS_GPRMC_RCVD)) {
+  if (statevars.status & STATUS_GPS_GPRMC_RCVD) {
     last_gps_heading_deg = statevars.gps_ground_course_deg;
     last_gps_speed = statevars.gps_ground_speed_kt * METERS_PER_SECOND_PER_KNOT;
   }
