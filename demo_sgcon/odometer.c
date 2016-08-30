@@ -75,6 +75,7 @@ uint8_t odometer_init(void) {
 
   odometer_reset();
   odometer_set_direction(Direction_Forward);
+  initialize_odometer_statevars();
 
   return 1;
 }
@@ -119,6 +120,9 @@ void odometer_update(void) {
   }
 
   statevars.odometer_timestamp = tick_time;
+
+  // reset the tick_time for this iteration
+  tick_time = 0;
 
   return;
 }

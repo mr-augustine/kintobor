@@ -69,8 +69,6 @@ void setup() {
     led_turn_off();
     update_all_inputs();
     uwrite_print_buff("Mission started!\r\n");
-    // TODO Consider calling update_all_input() before starting the main loop
-    // so that the first block written isn't empty
   }
 }
 
