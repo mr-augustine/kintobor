@@ -272,12 +272,16 @@ static uint8_t parse_gpgga(char * s) {
   float latitude = lat_degrees + lat_decimal_degrees;
   if (lat_is_south) {
     latitude = -latitude;
+    lat_degrees = -lat_degrees;
+    lat_decimal_degrees = -lat_decimal_degrees;
   }
 
   float long_decimal_degrees = long_minutes / 60.0;
   float longitude = long_degrees + long_decimal_degrees;
   if (long_is_west) {
     longitude = -longitude;
+    long_degrees = -long_degrees;
+    long_decimal_degrees = -long_decimal_degrees;
   }
 
   statevars.gps_latitude = latitude;
