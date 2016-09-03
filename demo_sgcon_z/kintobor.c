@@ -203,15 +203,13 @@ static void get_next_waypoint(void) {
   return;
 }
 
-// TODO NEED TO GET ALL RELEVANT GPS VALUES UPDATED!
-// TODO calculate the number of ticks since the last iteration
 static void update_all_nav(void) {
   get_next_waypoint();
 
   // Check if a new GPS coordinate was received and update the position
   if (statevars.status & STATUS_GPS_GPGGA_RCVD) {
-    current_lat = statevars.gps_latitude;
-    current_long = statevars.gps_longitude;
+    current_lat = statevars.gps_lat_ddeg;
+    current_long = statevars.gps_long_ddeg;
   }
 
   // Check if a new GPS heading and speed were received and update

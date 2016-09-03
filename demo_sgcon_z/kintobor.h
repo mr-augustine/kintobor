@@ -10,7 +10,7 @@
 #define _KINTOBOR_H
 
 #include "cmps10.h"
-#include "gps_bn.h"
+#include "gps.h"
 #include "ledbutton.h"
 #include "odometer.h"
 #include "statevars.h"

@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gps_bn.h"
+#include "gps.h"
 #include "statevars.h"
 #include "uwrite.h"
 
@@ -173,6 +173,10 @@ void gps_update(void) {
 static void initialize_gps_statevars() {
   statevars.gps_latitude = 0.0;
   statevars.gps_longitude = 0.0;
+  statevars.gps_lat_deg = 0;
+  statevars.gps_lat_ddeg = 0.0;
+  statevars.gps_long_deg = 0;
+  statevars.gps_long_ddeg = 0.0;
   statevars.gps_hdop = 0.0;
   statevars.gps_pdop = 0.0;
   statevars.gps_vdop = 0.0;
@@ -224,7 +228,7 @@ static uint8_t parse_gpgga(char * s) {
   s = strtok(NULL, ",");
   memset(field_buf, '\0', GPS_FIELD_BUFF_SZ);
   strncpy(field_buf, s, 2);
-  uint8_t lat_degrees = atoi(field_buf);
+  int16_t lat_degrees = atoi(field_buf);
 
   memset(field_buf, '\0', GPS_FIELD_BUFF_SZ);
   strncpy(field_buf, s+2, 7);
@@ -246,7 +250,7 @@ static uint8_t parse_gpgga(char * s) {
   s = strtok(NULL, ",");
   memset(field_buf, '\0', GPS_FIELD_BUFF_SZ);
   strncpy(field_buf, s, 3);
-  uint8_t long_degrees = atoi(field_buf);
+  int16_t long_degrees = atoi(field_buf);
 
   memset(field_buf, '\0', GPS_FIELD_BUFF_SZ);
   strncpy(field_buf, s+3, 7);
@@ -264,18 +268,24 @@ static uint8_t parse_gpgga(char * s) {
     return 1;
   }
 
-  float latitude = lat_degrees + (lat_minutes / 60.0);
+  float lat_decimal_degrees = lat_minutes / 60.0;
+  float latitude = lat_degrees + lat_decimal_degrees;
   if (lat_is_south) {
     latitude = -latitude;
   }
 
-  float longitude = long_degrees + (long_minutes / 60.0);
+  float long_decimal_degrees = long_minutes / 60.0;
+  float longitude = long_degrees + long_decimal_degrees;
   if (long_is_west) {
     longitude = -longitude;
   }
 
   statevars.gps_latitude = latitude;
   statevars.gps_longitude = longitude;
+  statevars.gps_lat_deg = lat_degrees;
+  statevars.gps_lat_ddeg = lat_decimal_degrees;
+  statevars.gps_long_deg = long_degrees;
+  statevars.gps_long_ddeg = long_decimal_degrees;
 
   // Position (Fix) Indicator
   s = strtok(NULL, ",");
