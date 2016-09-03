@@ -1,6 +1,6 @@
 /*
- * file: demo_sgcon.ino
- * created: 20160824
+ * file: demo_sgcon_bn.ino
+ * created: 20160829
  * author(s): mr-augustine
  *
  * This file orchestrates the sdcard_gps_compass_odometer_position demo. When the
@@ -10,12 +10,12 @@
  * continuously written to a file on the SD card. The program ends when the
  * start/stop button is pressed again.
  *
- * This application is a duplicate of the demo_sdcard_gps_compass_odometer app;
- * this time it generates tick timestamps based on TCNT1 and performs position
- * estimation. It also calculates the distance to and relative bearing to a
- * waypoint. In this demo, the waypoint is set as the very first GPS coordinate
- * that was received from the GPS sensor. The statevars definition was updated
- * to reflect these changes.
+ * This application is a duplicate of the demo_sgcon app. It uses the BigNumber
+ * library to calculate navigation-related values. The statevars definition was
+ * updated to reflect these changes.
+
+ * See the GPS and robot (kintobor) source files for details.
+ * This code is experimental.
  */
 #include <stdint.h>
 
