@@ -289,12 +289,18 @@ static uint8_t parse_gpgga(char * s) {
 
   // Position (Fix) Indicator
   s = strtok(NULL, ",");
-  if (*s == GPS_FIX_AVAIL) {
+  // For some reason, the GPS sensor uses the differential_gps_fix code (2)
+  // for the fix indicator instead of gps_fix code (1). Take them either way.
+  if (*s == GPS_DIFF_FIX_AVAIL || *s == GPS_FIX_AVAIL) {
     statevars.status |= STATUS_GPS_FIX_AVAIL;
   }
-  // If there is no fix, set an error flag and error out
+  // If there is no fix, set an error flag
   else if (*s == GPS_NO_FIX) {
     statevars.status |= STATUS_GPS_NO_FIX_AVAIL;
+  }
+  // If we get some other code, error out
+  else {
+    statevars.status |= STATUS_GPS_UNEXPECT_VAL;
     return 1;
   }
 
