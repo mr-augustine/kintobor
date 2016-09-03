@@ -1,6 +1,6 @@
 /*
  * file: pins.h
- * created: 20160829
+ * created: 20160902
  * author(s): mr-augustine
  *
  * Defines the pins used on the Arduino Mega.

@@ -1,5 +1,5 @@
 /*
- * file: demo_sgcon_bn.ino
+ * file: demo_sgcon_z.ino
  * created: 20160829
  * author(s): mr-augustine
  *
@@ -10,10 +10,13 @@
  * continuously written to a file on the SD card. The program ends when the
  * start/stop button is pressed again.
  *
- * This application is a duplicate of the demo_sgcon app. It uses the BigNumber
- * library to calculate navigation-related values. The statevars definition was
- * updated to reflect these changes.
-
+ * This application is a duplicate of the demo_sgcon app. It uses a
+ * zeroized-whole-degree approach to calculate navigation-related values.
+ * Essentially, the GPS values are recentered about lat/long (0,0) to allow
+ * float32-based calculations to be performed within the value range of 0 to 1
+ * (where it has greater precision). The statevars definition was updated to
+ * reflect these changes.
+ *
  * See the GPS and robot (kintobor) source files for details.
  * This code is experimental.
  */

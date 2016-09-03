@@ -1,6 +1,6 @@
 /*
  * file: twi.h
- * created: 20160829
+ * created: 20160902
  * author(s): mr-augustine
  *
  * These are the Two-Wire Interface (TWI) bit mask definitions

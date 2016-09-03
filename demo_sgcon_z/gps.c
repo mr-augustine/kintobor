@@ -1,6 +1,6 @@
 /*
- * file: gps_bn.c
- * created: 20160829
+ * file: gps.c
+ * created: 20160902
  * author(s): mr-augustine
  *
  * Defines the functions used to operate the GPS sensor. This library

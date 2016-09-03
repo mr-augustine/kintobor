@@ -1,13 +1,13 @@
 /*
  * file: kintobor.c
- * created: 20160829
+ * created: 20160902
  * author(s): mr-augustine
  *
  * The kintobor implementation file defines all of the robot's higher-order
  * functions.
  *
- * This implementation uses the BigNumber library in an effort to generate
- * more precise navigation-related values. This mod hopes to address the
+ * This implementation uses the zeroized-whole-degree method in an effort to
+ * generate more precise navigation-related values. This mod hopes to address
  * the seemingly insufficient precision given by the float datatype when used
  * to represent the calculated GPS coordinates between measured GPS coordinates.
  */

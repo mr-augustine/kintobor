@@ -1,6 +1,6 @@
 /*
  * file: cmps10.h
- * created: 20160829
+ * created: 20160902
  * author(s): mr-augustine
  *
  * Lists the functions used to initialize and update the compass sensor.

@@ -1,6 +1,6 @@
 /*
  * file: statevars.h
- * created: 20160829
+ * created: 20160902
  * author(s): mr-augustine
  *
  * This statevars header file defines the data structure that stores the
@@ -40,6 +40,10 @@ typedef struct {
     char      gps_sentence3[GPS_SENTENCE_LENGTH];
     float     gps_latitude;
     float     gps_longitude;
+    uint16_t  gps_lat_degrees;
+    float     gps_lat_minutes;
+    uint16_t  gps_long_degrees;
+    float     gps_long_minutes;
     float     gps_hdop;
     float     gps_pdop;
     float     gps_vdop;

@@ -1,6 +1,6 @@
 /*
  * file: uwrite.c
- * created: 20160829
+ * created: 20160902
  * author(s): mr-augustine
  *
  * Defines the functions used to write text and values to the serial port.
