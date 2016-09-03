@@ -29,6 +29,8 @@
 #define STATUS_GPS_UNEXPECT_VAL   (1 << 10)
 #define STATUS_GPS_DATA_NOT_VALID (1 << 11)
 #define STATUS_MAIN_LOOP_LATE     (1 << 12)
+#define STATUS_GPS_FIX_AVAIL      (1 << 13)
+#define STATUS_NAV_POSITION_KNOWN (1 << 14)
 
 typedef struct {
     uint32_t  prefix;

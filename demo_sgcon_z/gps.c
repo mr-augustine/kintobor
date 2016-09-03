@@ -289,8 +289,11 @@ static uint8_t parse_gpgga(char * s) {
 
   // Position (Fix) Indicator
   s = strtok(NULL, ",");
+  if (*s == GPS_FIX_AVAIL) {
+    statevars.status |= STATUS_GPS_FIX_AVAIL;
+  }
   // If there is no fix, set an error flag and error out
-  if (*s == GPS_NO_FIX) {
+  else if (*s == GPS_NO_FIX) {
     statevars.status |= STATUS_GPS_NO_FIX_AVAIL;
     return 1;
   }
