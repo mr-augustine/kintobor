@@ -1,10 +1,15 @@
 /*
  * file: kintobor.c
- * created: 20160824
+ * created: 20160902
  * author(s): mr-augustine
  *
  * The kintobor implementation file defines all of the robot's higher-order
  * functions.
+ *
+ * This implementation uses the zeroized-whole-degree method in an effort to
+ * generate more precise navigation-related values. This mod hopes to address
+ * the seemingly insufficient precision given by the float datatype when used
+ * to represent the calculated GPS coordinates between measured GPS coordinates.
  */
 #include "kintobor.h"
 #include <math.h>
@@ -28,8 +33,8 @@ static float rel_bearing_deg;
 static float distance_to_waypoint_m;
 static float current_speed; // in meters per second
 
-static float last_gps_heading_deg;
-static float last_gps_speed; // in meters per second
+static float gps_hdg_most_recent;
+static float gps_speed_most_recent; // in meters per second
 static uint32_t prev_tick_count;
 
 static float calc_dist_to_waypoint(float start_lat, float start_long, float end_lat, float end_long);
@@ -93,7 +98,7 @@ static float calc_nav_heading(void) {
   // Here we're calculating the navigation heading as the mid-angle between
   // the compass heading and the GPS heading because experimental data seemed
   // to produce good results when we did this.
-  float nav_heading = calc_mid_angle(norm_mag_hdg, last_gps_heading_deg);
+  float nav_heading = calc_mid_angle(norm_mag_hdg, gps_hdg_most_recent);
 
   // return norm_mag_hdg;
   return nav_heading;
@@ -182,40 +187,44 @@ static float calc_speed(float distance_m) {
 }
 
 // Gets the next waypoint
-// For this demo, we're using the first GPS coordinate we received
+// For this demo, we're using the decimal degrees of the first GPS coordinate
+// we received
 static void get_next_waypoint(void) {
   if (got_first_coord == 1) {
     return;
   }
 
-  if (statevars.status & STATUS_GPS_GPGGA_RCVD) {
-    waypoint_lat = statevars.gps_latitude;
-    waypoint_long = statevars.gps_longitude;
+  if (statevars.status & STATUS_GPS_FIX_AVAIL) {
+    // Ensure we aren't getting the default lat/long
+    //TODO We're assuming that the waypoint and current position don't cross
+    //a whole degree boundary!!! Fix this!
+    if (statevars.gps_latitude != 0.0 && statevars.gps_longitude != 0.0) {
+      waypoint_lat = statevars.gps_lat_ddeg;
+      waypoint_long = statevars.gps_long_ddeg;
 
-    got_first_coord = 1;
+      got_first_coord = 1;
+    }
   }
 
   return;
 }
 
-// TODO NEED TO GET ALL RELEVANT GPS VALUES UPDATED!
-// TODO calculate the number of ticks since the last iteration
 static void update_all_nav(void) {
   get_next_waypoint();
 
   // Check if a new GPS coordinate was received and update the position
-  if (statevars.status & STATUS_GPS_GPGGA_RCVD) {
-    current_lat = statevars.gps_latitude;
-    current_long = statevars.gps_longitude;
+  if (statevars.status & STATUS_GPS_FIX_AVAIL) {
+    current_lat = statevars.gps_lat_ddeg;
+    current_long = statevars.gps_long_ddeg;
   }
 
   // Check if a new GPS heading and speed were received and update
   if (statevars.status & STATUS_GPS_GPRMC_RCVD) {
-    last_gps_heading_deg = statevars.gps_ground_course_deg;
-    last_gps_speed = statevars.gps_ground_speed_kt * METERS_PER_SECOND_PER_KNOT;
+    gps_hdg_most_recent = statevars.gps_ground_course_deg;
+    gps_speed_most_recent = statevars.gps_ground_speed_kt * METERS_PER_SECOND_PER_KNOT;
   }
 
-  // Calculate the number of this that occurred during the current iteration
+  // Calculate the number of ticks that occurred during the current iteration
   // Since the tick count is cumulative, the new tick count will always be
   // greater-than or equal to the previous tick count
   uint32_t new_tick_count = statevars.odometer_ticks;
@@ -234,7 +243,7 @@ static void update_all_nav(void) {
   prev_tick_count = new_tick_count;
 
   if (current_speed == 0.0) {
-    current_speed = last_gps_speed;
+    current_speed = gps_speed_most_recent;
   }
 
   nav_heading_deg = calc_nav_heading();
