@@ -41,9 +41,10 @@ static float calc_dist_to_waypoint(float start_lat, float start_long, float end_
 static float calc_mid_angle(float heading_1, float heading_2);
 static float calc_nav_heading(void);
 static void calc_position(float* new_lat, float* new_long, float ref_lat, float ref_long, float distance, float heading);
-static float calc_relative_bearing(float start_lat, float start_long, float dest_lat, float dest_long, float heading);
+static float calc_relative_bearing(float waypoint_bearing, float current_heading);
 static float calc_speed(float distance_m);
 static float calc_speed_mps(uint32_t ticks);
+static float calc_true_bearing(float start_lat, float start_long, float dest_lat, float dest_long);
 static void get_next_waypoint(void);
 
 static uint8_t got_first_coord = 0;
@@ -100,7 +101,9 @@ static float calc_nav_heading(void) {
   // to produce good results when we did this.
   float nav_heading = calc_mid_angle(norm_mag_hdg, gps_hdg_most_recent);
 
+  // If you just want a compass-based heading, use this
   // return norm_mag_hdg;
+
   return nav_heading;
 }
 
@@ -131,27 +134,12 @@ static void calc_position(float* new_lat, float* new_long, float ref_lat, float 
   return;
 }
 
-// Calculates the relative bearing (i.e., the angle between the current
+// Calculates the relative bearing in degrees (i.e., the angle between the current
 // heading and the waypoint bearing); a negative value means the destination
 // is towards the left, and vice versa
-static float calc_relative_bearing(float start_lat, float start_long, float dest_lat, float dest_long, float heading) {
-  float start_lat_rad = DEG_TO_RAD(start_lat);
-  float start_long_rad = DEG_TO_RAD(start_long);
-  float dest_lat_rad = DEG_TO_RAD(dest_lat);
-  float dest_long_rad = DEG_TO_RAD(dest_long);
-
-  float y = sin(dest_long_rad - start_long_rad) *
-    cos(dest_lat_rad);
-  float x = cos(start_lat_rad) *
-    sin(dest_lat_rad) -
-    sin(start_lat_rad) *
-    cos(dest_lat_rad) *
-    cos(dest_long_rad - start_long_rad);
-
-  float bearing_rad = atan2(y, x);
-  float bearing_deg = RAD_TO_DEG(bearing_rad);
-
-  float diff = bearing_deg - heading;
+// "I'd have to change my heading by this much to point to the waypoint"
+static float calc_relative_bearing(float waypoint_bearing, float current_heading) {
+  float diff = waypoint_bearing - current_heading;
 
   // We want the range of bearings to be between -180..+180; so a result of
   // -225 (225 degrees to the left of where I'm pointing) will become +135
@@ -197,6 +185,27 @@ static float calc_speed(float distance_m) {
   return speed_meters_per_sec;
 }
 
+// Calculates the true bearing between two gps coordinates in degrees
+// "I'd have to change my heading to this value to point to that coordinate"
+static float calc_true_bearing(float start_lat, float start_long, float dest_lat, float dest_long) {
+  float start_lat_rad = DEG_TO_RAD(start_lat);
+  float start_long_rad = DEG_TO_RAD(start_long);
+  float dest_lat_rad = DEG_TO_RAD(dest_lat);
+  float dest_long_rad = DEG_TO_RAD(dest_long);
+
+  float y = sin(dest_long_rad - start_long_rad) *
+    cos(dest_lat_rad);
+  float x = cos(start_lat_rad) *
+    sin(dest_lat_rad) -
+    sin(start_lat_rad) *
+    cos(dest_lat_rad) *
+    cos(dest_long_rad - start_long_rad);
+
+  float bearing_rad = atan2(y, x);
+
+  return RAD_TO_DEG(bearing_rad);
+}
+
 // Gets the next waypoint
 // For this demo, we're using the decimal degrees of the first GPS coordinate
 // we received
@@ -225,13 +234,18 @@ static void update_all_nav(void) {
 
   // Check if a new GPS coordinate was received and update the position
   if (statevars.status & STATUS_GPS_FIX_AVAIL) {
+    // Calculate a new gps-based heading using the previous coord (current)
+    // and the newest coord (statevars)
+    gps_hdg_most_recent = calc_true_bearing(current_lat, current_long, statevars.gps_lat_ddeg, statevars.gps_long_ddeg);
     current_lat = statevars.gps_lat_ddeg;
     current_long = statevars.gps_long_ddeg;
   }
 
   // Check if a new GPS heading and speed were received and update
   if (statevars.status & STATUS_GPS_GPRMC_RCVD) {
-    gps_hdg_most_recent = statevars.gps_ground_course_deg;
+    // Not using the gps heading because sometimes it's horrendous. Instead,
+    // we'll calculate our own using calc_true_bearing()
+    // gps_hdg_most_recent = statevars.gps_ground_course_deg;
     gps_speed_most_recent = statevars.gps_ground_speed_kt * METERS_PER_SECOND_PER_KNOT;
   }
 
@@ -263,8 +277,10 @@ static void update_all_nav(void) {
   float old_long = current_long;
   calc_position(&current_lat, &current_long, old_lat, old_long, distance_since_prev_iter_m, nav_heading_deg);
 
+  float waypt_true_bearing = calc_true_bearing(current_lat, current_long, waypoint_lat, waypoint_long);
+  rel_bearing_deg = calc_relative_bearing(waypt_true_bearing, nav_heading_deg);
+
   distance_to_waypoint_m = calc_dist_to_waypoint(current_lat, current_long, waypoint_lat, waypoint_long);
-  rel_bearing_deg = calc_relative_bearing(current_lat, current_long, waypoint_lat, waypoint_long, nav_heading_deg);
 
   statevars.nav_heading_deg = nav_heading_deg;
   statevars.nav_latitude = current_lat;
