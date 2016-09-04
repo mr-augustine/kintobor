@@ -202,8 +202,14 @@ static float calc_true_bearing(float start_lat, float start_long, float dest_lat
     cos(dest_long_rad - start_long_rad);
 
   float bearing_rad = atan2(y, x);
+  float bearing_deg = RAD_TO_DEG(bearing_rad);
 
-  return RAD_TO_DEG(bearing_rad);
+  // Shift the values from the range [-180,180] to [0,360)
+  if (bearing_deg < 0.0) {
+    return bearing_deg + 360.0;
+  }
+
+  return bearing_deg;
 }
 
 // Gets the next waypoint
