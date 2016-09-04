@@ -151,7 +151,18 @@ static float calc_relative_bearing(float start_lat, float start_long, float dest
   float bearing_rad = atan2(y, x);
   float bearing_deg = RAD_TO_DEG(bearing_rad);
 
-  return (bearing_deg - heading);
+  float diff = bearing_deg - heading;
+
+  // We want the range of bearings to be between -180..+180; so a result of
+  // -225 (225 degrees to the left of where I'm pointing) will become +135
+  // (135 degrees to the right of where I'm pointing)
+  if (diff > 180.0) {
+    return (diff - 360.0);
+  } else if (diff < -180.0) {
+    return (diff + 360.0);
+  }
+
+  return diff;
 }
 
 // Calculate the robot's current speed based on how many odometer ticks were
