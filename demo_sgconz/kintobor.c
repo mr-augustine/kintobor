@@ -1,6 +1,6 @@
 /*
  * file: kintobor.c
- * created: 20160902
+ * created: 20160904
  * author(s): mr-augustine
  *
  * The kintobor implementation file defines all of the robot's higher-order
@@ -33,6 +33,8 @@ static float rel_bearing_deg;
 static float distance_to_waypoint_m;
 static float current_speed; // in meters per second
 
+static float gps_lat_most_recent;
+static float gps_long_most_recent;
 static float gps_hdg_most_recent;
 static float gps_speed_most_recent; // in meters per second
 static uint32_t prev_tick_count;
@@ -95,6 +97,10 @@ static float calc_mid_angle(float heading_1, float heading_2) {
 
 static float calc_nav_heading(void) {
   float norm_mag_hdg = statevars.heading_deg + MAGNETIC_DECLINATION;
+
+  if (norm_mag_hdg > 360.0) {
+    norm_mag_hdg -= 360.0;
+  }
 
   // Here we're calculating the navigation heading as the mid-angle between
   // the compass heading and the GPS heading because experimental data seemed
@@ -242,7 +248,13 @@ static void update_all_nav(void) {
   if (statevars.status & STATUS_GPS_FIX_AVAIL) {
     // Calculate a new gps-based heading using the previous coord (current)
     // and the newest coord (statevars)
-    gps_hdg_most_recent = calc_true_bearing(current_lat, current_long, statevars.gps_lat_ddeg, statevars.gps_long_ddeg);
+    gps_hdg_most_recent = calc_true_bearing(gps_lat_most_recent,
+                                            gps_long_most_recent,
+                                            statevars.gps_lat_ddeg,
+                                            statevars.gps_long_ddeg);
+
+    gps_lat_most_recent = statevars.gps_lat_ddeg;
+    gps_long_most_recent = statevars.gps_long_ddeg;
     current_lat = statevars.gps_lat_ddeg;
     current_long = statevars.gps_long_ddeg;
   }
@@ -289,6 +301,7 @@ static void update_all_nav(void) {
   distance_to_waypoint_m = calc_dist_to_waypoint(current_lat, current_long, waypoint_lat, waypoint_long);
 
   statevars.nav_heading_deg = nav_heading_deg;
+  statevars.nav_gps_heading = gps_hdg_most_recent;
   statevars.nav_latitude = current_lat;
   statevars.nav_longitude = current_long;
   statevars.nav_waypt_latitude = waypoint_lat;
