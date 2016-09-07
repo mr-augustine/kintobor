@@ -12,6 +12,7 @@
 #include "cmps10.h"
 #include "gps.h"
 #include "ledbutton.h"
+#include "mobility.h"
 #include "odometer.h"
 #include "statevars.h"
 #include "uwrite.h"
