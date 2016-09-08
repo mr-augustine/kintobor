@@ -81,7 +81,7 @@ uint8_t mobility_init(void) {
   tnp_bypass(TNP_MIN_ITERATIONS);
 
   mobility_stop();
-  steer_to_direction(TURN_NEUTRAL);
+  mobility_steer(TURN_NEUTRAL);
 
   return 1;
 }

@@ -26,7 +26,7 @@
 #define TNP_MIN_ITERATIONS    100   // minimum number of iterations to execute
                                     // throttle neutral protection bypass
 
-#define SPEED_FWD_CREEP       1600
+#define SPEED_FWD_CREEP       1580
 #define SPEED_FWD_CRUISE      1800
 #define SPEED_FWD_LUDICROUS   2000
 #define SPEED_NEUTRAL         1500

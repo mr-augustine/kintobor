@@ -24,7 +24,7 @@
  */
 #define MAINLOOP_PERIOD_TICKS   6249    // loop period is 25 ms
 
-#define MISSION_TIMEOUT 320 // 40 iterations/sec * 8 sec = 320 cycles
+#define MISSION_TIMEOUT 320 // 40 iterations/sec * 5 sec = 200 cycles
 statevars_t statevars;
 uint32_t iterations;
 
@@ -206,6 +206,13 @@ uint8_t init_all_subsystems(void) {
     return 0;
   } else {
     uwrite_print_buff("Odometer is ready!\r\n");
+  }
+
+  if (!mobility_init()) {
+    uwrite_print_buff("Mobility couldn't be initialized\r\n");
+    return 0;
+  } else {
+    uwrite_print_buff("Mobility is ready!\r\n");
   }
 
   if (!sdcard_init(&statevars, sizeof(statevars))) {
