@@ -24,6 +24,14 @@
 #define SECONDS_PER_TICK 0.000004
 #define TICKS_PER_METER 7.6
 
+#define SECONDS_PER_LOOP 0.025
+
+#define TARGET_HEADING 270.0
+
+#define K_PROP 2.7777777777777 // proportional gain
+#define K_RATE 0 // derivative gain
+#define K_INTEGRAL 0 // integral gain
+
 static float current_lat;
 static float current_long;
 static float waypoint_lat;
@@ -48,8 +56,18 @@ static float calc_speed(float distance_m);
 static float calc_speed_mps(uint32_t ticks);
 static float calc_true_bearing(float start_lat, float start_long, float dest_lat, float dest_long);
 static void get_next_waypoint(void);
+static void update_xtrack_error(void);
+static void update_xtrack_error_rate(void);
+static void update_xtrack_error_sum(void);
 
 static uint8_t got_first_coord = 0;
+
+static float xtrack_error;
+static float xtrack_error_prev;
+static float xtrack_error_rate;
+static float xtrack_error_sum;
+
+static float steer_control = 1500;
 
 // Returns the distance (in meters) to the current waypoint
 static float calc_dist_to_waypoint(float lat_1, float long_1, float lat_2, float long_2) {
@@ -313,6 +331,34 @@ static void update_all_nav(void) {
   return;
 }
 
+static void update_xtrack_error(void) {
+  // Error = Reference Value - Measured value
+  xtrack_error_prev = xtrack_error;
+  xtrack_error = TARGET_HEADING - nav_heading_deg;
+
+  statevars.control_xtrack_error = xtrack_error;
+
+  return;
+}
+
+static void update_xtrack_error_rate(void) {
+  // Rate = (Error - Error_Previous) / Computation Interval
+  xtrack_error_rate = (xtrack_error - xtrack_error_prev) / SECONDS_PER_LOOP;
+
+  statevars.control_xtrack_error_rate = xtrack_error_rate;
+
+  return;
+}
+
+static void update_xtrack_error_sum(void) {
+  // Rate Sum = Rate Sum + Error * Computation Interval
+  xtrack_error_sum = xtrack_error_sum + xtrack_error * SECONDS_PER_LOOP;
+
+  statevars.control_xtrack_error_sum = xtrack_error_sum;
+
+  return;
+}
+
 void update_all_inputs(void) {
   button_update();
   cmps10_update_all();
@@ -320,6 +366,24 @@ void update_all_inputs(void) {
   odometer_update();
 
   update_all_nav();
+
+  return;
+}
+
+void update_nav_control_values(void) {
+  update_xtrack_error();
+  update_xtrack_error_rate();
+  update_xtrack_error_sum();
+
+  steer_control = (K_PROP * xtrack_error) +
+                  (K_RATE * xtrack_error_rate) +
+                  (K_INTEGRAL * xtrack_error_sum);
+
+  // Limit validation for steer_control will be handled by the mobility library.
+  // This way we don't command the robot to turn beyond the full left/right
+  // steering angles
+
+  statevars.control_steering_pwm = steer_control;
 
   return;
 }

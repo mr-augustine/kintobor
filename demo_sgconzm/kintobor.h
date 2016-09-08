@@ -22,6 +22,7 @@
 #ifdef __cplusplus
 extern "C" {
   void update_all_inputs(void);
+  void update_nav_control_values(void);
 }
 #endif // #ifdef __cplusplus
 

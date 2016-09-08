@@ -24,6 +24,7 @@
  */
 #define MAINLOOP_PERIOD_TICKS   6249    // loop period is 25 ms
 
+#define MISSION_TIMEOUT 320 // 40 iterations/sec * 8 sec = 320 cycles
 statevars_t statevars;
 uint32_t iterations;
 
@@ -60,11 +61,13 @@ void setup() {
   do {
     led_turn_on();
     button_update();
+    mobility_blocking_stop();
   } while (!button_is_pressed());
 
   if (button_is_pressed()) {
     led_turn_off();
     update_all_inputs();
+    update_nav_control_values();
     uwrite_print_buff("Mission started!\r\n");
   }
 }
@@ -86,15 +89,26 @@ void loop() {
   statevars.main_loop_counter = iterations;
   system_timer_overflow = 0;
 
+  mobility_start_control_output();
+
+  mobility_drive_fwd(Speed_Creep);
+
   update_all_inputs();
 
+  update_nav_control_values();
+
+  mobility_steer(statevars.mobility_steering_pwm);
 
   iterations++;
 
   // If the button switched to the OFF position, then stop the mission
-  if (!button_is_pressed()) {
+  //if (!button_is_pressed()) {
+  // Instead, stop the robot after a certain number of seconds
+  if (iterations > MISSION_TIMEOUT) {
     uwrite_print_buff("Finished collecting data!\r\n");
     sdcard_finish();
+
+    mobility_blocking_stop();
 
     exit(0);
   }

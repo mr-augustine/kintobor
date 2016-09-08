@@ -52,7 +52,7 @@ extern "C" {
   void mobility_hardstop(void);
   void mobility_blocking_stop(void);
   void mobility_stop(void);
-  void steer_to_direction(uint16_t turn_degree);
+  void mobility_steer(uint16_t steer_pwm);
 }
 #endif // #ifdef __cplusplus
 

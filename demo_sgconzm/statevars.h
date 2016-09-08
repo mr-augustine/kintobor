@@ -82,6 +82,7 @@ typedef struct {
     float     control_xtrack_error;
     float     control_xtrack_error_rate;
     float     control_xtrack_error_sum;
+    float     control_steering_pwm;
     uint32_t suffix;
 } statevars_t;
 

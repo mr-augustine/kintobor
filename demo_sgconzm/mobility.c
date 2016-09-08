@@ -296,21 +296,24 @@ void mobility_stop(void) {
   return;
 }
 
-void steer_to_direction(uint16_t turn_degree) {
+void mobility_steer(uint16_t steer_pwm) {
   // Steering values greater than 1500 will steer Left. And steering values
   // less than 1500 will steer Right. This code snippet prevents the
   // steering servo from getting a signal that would command it beyond its
   // turn limits.
-  if (turn_degree < TURN_FULL_RIGHT) {
-    turn_degree = TURN_FULL_RIGHT;
-  } else if (turn_degree > TURN_FULL_LEFT) {
-    turn_degree = TURN_FULL_LEFT;
+  if (steer_pwm < TURN_FULL_RIGHT) {
+    steer_pwm = TURN_FULL_RIGHT;
   }
 
-  mobility_steer_us = turn_degree;
+  if (steer_pwm > TURN_FULL_LEFT) {
+    steer_pwm = TURN_FULL_LEFT;
+  }
+
+  mobility_steer_us = steer_pwm;
 
   STEERING_COMPARE_REG = mobility_steer_us >> 2;
 
   statevars.mobility_steering_pwm = STEERING_COMPARE_REG;
+
   return;
 }
