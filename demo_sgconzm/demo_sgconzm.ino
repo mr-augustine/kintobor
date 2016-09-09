@@ -83,21 +83,25 @@ void loop() {
   // Record the data from the previous iteration
   write_data();
 
+  // Set the control values from the previous iteration
+  // Rationale: Based on initial testing, I suspect the output compare register
+  // values that shape the PWM signals isn't being set early enough because
+  // the floating-point calculations in update_nav_control_values() takes a
+  // while. So I'll carryover the PWM values from the previous iteration and
+  // set them at the start of the new iteration.
+  mobility_start_control_output();
+  mobility_steer(statevars.mobility_steering_pwm);
+  mobility_drive_fwd(Speed_Creep);
+
   // Reset statevars and timer overflow flag
   statevars.status = 0;
 
   statevars.main_loop_counter = iterations;
   system_timer_overflow = 0;
 
-  mobility_start_control_output();
-
-  mobility_drive_fwd(Speed_Creep);
-
   update_all_inputs();
 
   update_nav_control_values();
-
-  mobility_steer(statevars.mobility_steering_pwm);
 
   iterations++;
 

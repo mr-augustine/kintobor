@@ -40,6 +40,7 @@ static float nav_heading_deg;
 static float rel_bearing_deg;
 static float distance_to_waypoint_m;
 static float current_speed; // in meters per second
+static float waypt_true_bearing;
 
 static float gps_lat_most_recent;
 static float gps_long_most_recent;
@@ -51,7 +52,7 @@ static float calc_dist_to_waypoint(float start_lat, float start_long, float end_
 static float calc_mid_angle(float heading_1, float heading_2);
 static float calc_nav_heading(void);
 static void calc_position(float* new_lat, float* new_long, float ref_lat, float ref_long, float distance, float heading);
-static float calc_relative_bearing(float waypoint_bearing, float current_heading);
+static float calc_relative_bearing(float desired_bearing, float current_heading);
 static float calc_speed(float distance_m);
 static float calc_speed_mps(uint32_t ticks);
 static float calc_true_bearing(float start_lat, float start_long, float dest_lat, float dest_long);
@@ -162,8 +163,8 @@ static void calc_position(float* new_lat, float* new_long, float ref_lat, float 
 // heading and the waypoint bearing); a negative value means the destination
 // is towards the left, and vice versa
 // "I'd have to change my heading by this much to point to the waypoint"
-static float calc_relative_bearing(float waypoint_bearing, float current_heading) {
-  float diff = waypoint_bearing - current_heading;
+static float calc_relative_bearing(float desired_bearing, float current_heading) {
+  float diff = desired_bearing - current_heading;
 
   // We want the range of bearings to be between -180..+180; so a result of
   // -225 (225 degrees to the left of where I'm pointing) will become +135
@@ -313,7 +314,7 @@ static void update_all_nav(void) {
   float old_long = current_long;
   calc_position(&current_lat, &current_long, old_lat, old_long, distance_since_prev_iter_m, nav_heading_deg);
 
-  float waypt_true_bearing = calc_true_bearing(current_lat, current_long, waypoint_lat, waypoint_long);
+  waypt_true_bearing = calc_true_bearing(current_lat, current_long, waypoint_lat, waypoint_long);
   rel_bearing_deg = calc_relative_bearing(waypt_true_bearing, nav_heading_deg);
 
   distance_to_waypoint_m = calc_dist_to_waypoint(current_lat, current_long, waypoint_lat, waypoint_long);
@@ -336,7 +337,16 @@ static void update_xtrack_error(void) {
   xtrack_error_prev = xtrack_error;
   xtrack_error = TARGET_HEADING - nav_heading_deg;
 
+  // TODO Change this assignment when you start navigating to waypoints.
+  // Normally the desired heading will be the waypt_true_bearing unless we set
+  // a new bearing if an obstacle is detected
+  statevars.control_heading_desired = TARGET_HEADING;
+  // statevars.control_heading_desired = waypt_true_bearing;
+
   statevars.control_xtrack_error = xtrack_error;
+  // TODO Normally the cross track error will be the relative bearing (to the
+  // waypoint) unless we decide to set a new bearing if an obstacle is detected
+  // statevars.control_xtrack_error = rel_bearing_deg;
 
   return;
 }
