@@ -78,7 +78,7 @@ typedef struct {
     float     nav_speed;
     uint16_t  mobility_motor_pwm;
     uint16_t  mobility_steering_pwm;
-    uint16_t  control_heading_desired;
+    float     control_heading_desired;
     float     control_xtrack_error;
     float     control_xtrack_error_rate;
     float     control_xtrack_error_sum;
