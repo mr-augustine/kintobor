@@ -18,7 +18,8 @@
 #define RAD_TO_DEG(radians) (radians * 180.0 / M_PI)
 #define EARTH_RADIUS_M 6371393.0
 // Stolen from NOAA: https://www.ngdc.noaa.gov/geomag/WMM/data/WMM2015/WMM2015_D_MERC.pdf
-#define MAGNETIC_DECLINATION 4.0  // For central Texas
+// And stolen from NGDC: http://www.ngdc.noaa.gov/geomag-web/
+#define MAGNETIC_DECLINATION 8.52  // For Boulder, Colorado
 #define METERS_PER_SECOND_PER_KNOT 0.514444
 #define MICROS_PER_TICK 4.0
 #define SECONDS_PER_TICK 0.000004
