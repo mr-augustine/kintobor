@@ -24,7 +24,7 @@
  */
 #define MAINLOOP_PERIOD_TICKS   6249    // loop period is 25 ms
 
-#define MISSION_TIMEOUT 320 // 40 iterations/sec * 8 sec = 320 cycles
+#define MISSION_TIMEOUT 320 // 40 iterations/sec * 5 sec = 200 cycles
 statevars_t statevars;
 uint32_t iterations;
 
@@ -83,21 +83,25 @@ void loop() {
   // Record the data from the previous iteration
   write_data();
 
+  // Set the control values from the previous iteration
+  // Rationale: Based on initial testing, I suspect the output compare register
+  // values that shape the PWM signals isn't being set early enough because
+  // the floating-point calculations in update_nav_control_values() takes a
+  // while. So I'll carryover the PWM values from the previous iteration and
+  // set them at the start of the new iteration.
+  mobility_start_control_output();
+  mobility_steer(statevars.mobility_steering_pwm);
+  mobility_drive_fwd(Speed_Creep);
+
   // Reset statevars and timer overflow flag
   statevars.status = 0;
 
   statevars.main_loop_counter = iterations;
   system_timer_overflow = 0;
 
-  mobility_start_control_output();
-
-  mobility_drive_fwd(Speed_Creep);
-
   update_all_inputs();
 
   update_nav_control_values();
-
-  mobility_steer(statevars.mobility_steering_pwm);
 
   iterations++;
 
@@ -206,6 +210,13 @@ uint8_t init_all_subsystems(void) {
     return 0;
   } else {
     uwrite_print_buff("Odometer is ready!\r\n");
+  }
+
+  if (!mobility_init()) {
+    uwrite_print_buff("Mobility couldn't be initialized\r\n");
+    return 0;
+  } else {
+    uwrite_print_buff("Mobility is ready!\r\n");
   }
 
   if (!sdcard_init(&statevars, sizeof(statevars))) {
