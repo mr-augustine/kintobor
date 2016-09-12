@@ -335,7 +335,8 @@ static void update_all_nav(void) {
 static void update_xtrack_error(void) {
   // Error = Reference Value - Measured value
   xtrack_error_prev = xtrack_error;
-  xtrack_error = TARGET_HEADING - nav_heading_deg;
+
+  xtrack_error = calc_relative_bearing(TARGET_HEADING, nav_heading_deg);
 
   // TODO Change this assignment when you start navigating to waypoints.
   // Normally the desired heading will be the waypt_true_bearing unless we set
