@@ -29,7 +29,7 @@
 
 #define TARGET_HEADING 270.0
 
-#define K_PROP 2.7777777777777 // proportional gain
+#define K_PROP 10 // proportional gain
 #define K_RATE 0 // derivative gain
 #define K_INTEGRAL 0 // integral gain
 
@@ -126,6 +126,8 @@ static float calc_nav_heading(void) {
   // the compass heading and the GPS heading because experimental data seemed
   // to produce good results when we did this.
   float nav_heading = calc_mid_angle(norm_mag_hdg, gps_hdg_most_recent);
+
+  statevars.nav_heading_deg = nav_heading;
 
   // If you just want a compass-based heading, use this
   // return norm_mag_hdg;
@@ -363,6 +365,9 @@ static void update_xtrack_error_rate(void) {
 }
 
 static void update_xtrack_error_sum(void) {
+  // TODO Be sure to reset the cross track error sum  to zero when the
+  // cross track error becomes zero (or very close to it)
+
   // Rate Sum = Rate Sum + Error * Computation Interval
   xtrack_error_sum = xtrack_error_sum + xtrack_error * SECONDS_PER_LOOP;
 
@@ -395,7 +400,13 @@ void update_nav_control_values(void) {
   // This way we don't command the robot to turn beyond the full left/right
   // steering angles
 
-  statevars.control_steering_pwm = steer_control;
+  // If the xtrack_error is NEGATIVE, then the robot is towards the RIGHT of
+  // where it needs to be; If the xtrack error is POSITIVE, then the robot is
+  // towards the LEFT of where it needs to be. So, if I'm towards the right of
+  // the target heading, I need to turn left. To turn left, you increase the
+  // steering PWM value. This is why we have a subtraction in the line below.
+  statevars.control_steering_pwm = (uint16_t)(TURN_NEUTRAL - steer_control);
+  //statevars.control_steering_pwm = (uint16_t)(statevars.mobility_steering_pwm - steer_control);
 
   return;
 }

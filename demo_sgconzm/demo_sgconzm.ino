@@ -90,7 +90,7 @@ void loop() {
   // while. So I'll carryover the PWM values from the previous iteration and
   // set them at the start of the new iteration.
   mobility_start_control_output();
-  mobility_steer(statevars.mobility_steering_pwm);
+  mobility_steer(statevars.control_steering_pwm);
   mobility_drive_fwd(Speed_Creep);
 
   // Reset statevars and timer overflow flag
